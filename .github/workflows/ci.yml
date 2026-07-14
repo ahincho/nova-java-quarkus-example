@@ -1,0 +1,109 @@
+name: CI/CD Pipeline
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    uses: ahincho/nova-devops/.github/workflows/reusable-build-gradle.yml@main
+    secrets: inherit
+
+  sonar:
+    if: github.event_name == 'pull_request' && vars.SONAR_ENABLED == 'true'
+    uses: ahincho/nova-devops/.github/workflows/reusable-sonarcloud-gradle.yml@main
+    with:
+      sonar-org: ahincho
+      sonar-project-key: ahincho_nova-java-quarkus-example
+    secrets: inherit
+
+  matrix:
+    uses: ahincho/nova-devops/.github/workflows/reusable-build-matrix.yml@main
+    with:
+      build-tool: gradle
+    secrets: inherit
+
+  owasp:
+    uses: ahincho/nova-devops/.github/workflows/reusable-owasp-check.yml@main
+    with:
+      build-tool: gradle
+    secrets: inherit
+
+  sbom:
+    if: github.event_name == 'pull_request'
+    uses: ahincho/nova-devops/.github/workflows/reusable-sbom.yml@main
+    with:
+      build-tool: gradle
+    permissions:
+      contents: write
+    secrets: inherit
+
+  # Integration test end-to-end del extension Nova:
+  # Arranca Quarkus, ejecuta los tests @QuarkusTest, y reporta el resultado.
+  # ESTE JOB ES EL QUE VALIDA LA FASE 0 de doc 07: confirma que el
+  # @ServerExceptionMapper del extension se invoca correctamente y que
+  # ApiResponse JSON se serializa segun el contrato de nova-api-standard.
+  quarkus-it:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Nova Setup Java
+        uses: ahincho/nova-devops/.github/actions/nova-setup-java@main
+        with:
+          java-version: '25'
+          build-tool: gradle
+          packages-read-token: ${{ secrets.NOVA_PACKAGES_READ_TOKEN || secrets.NOVA_RELEASE_PAT }}
+
+      - name: Nova Validate Build
+        uses: ahincho/nova-devops/.github/actions/nova-validate-build@main
+        with:
+          min-java-version: '25'
+
+      - name: Nova Gather Facts
+        id: facts
+        uses: ahincho/nova-devops/.github/actions/nova-gather-facts@main
+        with:
+          version-source: gradle-properties
+
+      - name: Run @QuarkusTest (integration tests)
+        env:
+          NOVA_PACKAGES_READ_TOKEN: ${{ secrets.NOVA_PACKAGES_READ_TOKEN || secrets.NOVA_RELEASE_PAT }}
+        run: ./gradlew test --no-configuration-cache --info
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quarkus-test-reports
+          path: |
+            **/build/reports/tests/**
+
+      - name: Quarkus IT Summary
+        if: always()
+        run: |
+          echo "## Quarkus Integration Tests" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Setting | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Quarkus version | 3.37.2 |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Extension version | ${{ steps.facts.outputs.version }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Nova extension artifact | pe.edu.nova.java.starters:nova-java-api-standard-quarkus-extension:1.1.1 |" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Valida Fase 0 de doc 07: el @ServerExceptionMapper del extension Nova" >> "$GITHUB_STEP_SUMMARY"
+          echo "intercepta excepciones lanzadas desde resource methods de Quarkus REST." >> "$GITHUB_STEP_SUMMARY"
