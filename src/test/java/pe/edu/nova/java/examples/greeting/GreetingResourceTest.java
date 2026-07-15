@@ -7,6 +7,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 
 /**
  * Tests de integracion del {@link GreetingResource} consumiendo
@@ -44,7 +45,7 @@ class GreetingResourceTest {
                 .contentType("application/json")
                 .body("success", is(false))
                 .body("status", is(400))
-                .body("data", is(null))
+                .body("data", nullValue())
                 .body("errors[0].code", equalTo("BAD_REQUEST"))
                 .body("errors[0].message", equalTo("name must not be empty"));
     }
@@ -62,11 +63,15 @@ class GreetingResourceTest {
 
     @Test
     void blankPathParamMapsToBadRequest() {
-        // PathParam vacio no es valido en JAX-RS pero un nombre blank
-        // (e.g. "   ") si pasa el matching del path. Validamos que el
-        // IllegalArgumentException se mapee a 400 BAD_REQUEST.
+        // PathParam blank (e.g. "   ") se valida en el resource y lanza
+        // IllegalArgumentException, que el mapper mapea a 400 BAD_REQUEST.
+        // NOTA: JAX-RS no URL-decodea path params automaticamente en
+        // Quarkus REST (resteasy-reactive), asi que pasamos el valor
+        // como path param tipado (no como string en la URL) para evitar
+        // el re-encoding de RestAssured.
         given()
-            .when().get("/hello/%20%20%20")
+            .pathParam("name", "   ")
+            .when().get("/hello/{name}")
             .then()
                 .statusCode(400)
                 .body("success", is(false))
