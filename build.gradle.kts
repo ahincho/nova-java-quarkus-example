@@ -98,6 +98,16 @@ dependencyCheck {
     nvd.apiKey = System.getenv("NVD_API_KEY") ?: ""
     skipConfigurations = listOf("testCompileClasspath", "testRuntimeClasspath")
     formats = listOf("HTML", "JSON")
+    // CRITICO: reusable-owasp-check.yml descarga un mirror NVD pre-construido
+    // (~119MB) desde ahincho/nova-devops (releases/tag/nvd-mirror), reconstruido
+    // diario por nvd-mirror-update.yml. Con autoUpdate=true (default), el plugin
+    // IGNORA ese mirror y dispara un full sync contra NVD (366k records), que
+    // tarda 5-15 min CON key y 18+ min SIN key (rate-limited HTTP 429). El
+    // mirror + autoUpdate=false da el mismo nivel de deteccion (<24h staleness)
+    // en <1 min. Documentado en doc 07 §8 (Causa raiz del OWASP lento).
+    autoUpdate = false
+    data.directory = System.getenv("NOVA_OWASP_DATA_DIR")
+        ?: "${System.getProperty("user.home")}/.dependency-check-data"
 }
 
 checkstyle {
