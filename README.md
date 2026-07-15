@@ -4,7 +4,7 @@ Instancia Quarkus 3.37 del meta-framework **Nova Platform**.
 
 Paralelo Quarkus de [`instances/nova-java-example/`](../../nova-java-example/) (que es la instancia Spring Boot). Ambas son apps reales que consumen las librerias puras + extensions de Nova.
 
-Sirve como **integration test vivo** del extension `nova-java-api-standard-quarkus-extension` publicado en [`ahincho/nova-java-api-standard-quarkus-extension`](https://github.com/ahincho/nova-java-api-standard-quarkus-extension).
+Sirve como **integration test vivo** del extension `nova-quarkus-api-ext` publicado en [`ahincho/nova-java-api-standard-quarkus-extension`](https://github.com/ahincho/nova-java-api-standard-quarkus-extension).
 
 Este proyecto **valida la Fase 0** del documento [`docs/java/07-quarkus-analisis-adopcion.md`](../../../docs/java/07-quarkus-analisis-adopcion.md).
 
@@ -25,10 +25,10 @@ Sin el extension Nova, las excepciones no controladas darian un JSON default de 
 
 | Pieza | Version |
 |---|---|
-| Quarkus | 3.37.2 |
+| Quarkus | 3.33.2.1 LTS |
 | Java | 25 |
 | Gradle | 9.5.1 |
-| `nova-api-standard-quarkus-extension` | 1.1.1 |
+| `nova-quarkus-api-ext` | 1.0.0 |
 | `nova-api-standard` (transitiva) | 1.0.0 |
 
 ## Running the application in dev mode
