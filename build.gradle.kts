@@ -3,6 +3,7 @@ import org.gradle.api.publish.maven.MavenPublication
 plugins {
     java
     id("io.quarkus")
+    id("checkstyle")
     id("org.owasp.dependencycheck") version "12.2.2"
     id("org.cyclonedx.bom") version "3.2.4"
 }
@@ -97,4 +98,11 @@ dependencyCheck {
     nvd.apiKey = System.getenv("NVD_API_KEY") ?: ""
     skipConfigurations = listOf("testCompileClasspath", "testRuntimeClasspath")
     formats = listOf("HTML", "JSON")
+}
+
+checkstyle {
+    // El CI ejecuta ./gradlew checkstyleMain via reusable-build-gradle.yml,
+    // asi que la task DEBE existir. Usamos la config por default del plugin
+    // (sun_checks.xml) ya que esta instancia es solo un ejemplo.
+    toolVersion = "10.12.0"
 }
