@@ -28,7 +28,7 @@ Sin el extension Nova, las excepciones no controladas darian un JSON default de 
 | Quarkus | 3.33.2.1 LTS |
 | Java | 25 |
 | Gradle | 9.5.1 |
-| `nova-quarkus-api-ext` | 1.0.0 |
+| `nova-quarkus-api-ext` | 1.0.1 |
 | `nova-api-standard` (transitiva) | 1.0.0 |
 
 ## Running the application in dev mode

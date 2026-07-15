@@ -70,7 +70,7 @@ dependencies {
     // para que las respuestas se serialicen como ApiResponse<T> segun el contrato
     // de nova-api-standard. Sin esto, las excepciones no controladas retornarian
     // un JSON vacio y el timestamp de ApiMetadata se serializaria como epoch ms.
-    implementation("pe.edu.nova.java.starters:nova-quarkus-api-ext:1.0.0")
+    implementation("pe.edu.nova.java.starters:nova-quarkus-api-ext:1.0.1")
 
     // Tests
     testImplementation("io.quarkus:quarkus-junit")
